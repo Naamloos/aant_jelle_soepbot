@@ -1,0 +1,32 @@
+{
+  "name": "aant_jelle_soepbot",
+  "version": "1.0.0",
+  "description": "Beep boop uw motie is verworpen",
+  "homepage": "https://github.com/Naamloos/aant_jelle_soepbot#readme",
+  "bugs": {
+    "url": "https://github.com/Naamloos/aant_jelle_soepbot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Naamloos/aant_jelle_soepbot.git"
+  },
+  "license": "MIT",
+  "author": "Naamloos",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsup src/index.ts --minify"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "discord-api-types": "^0.38.32",
+    "discord.js": "^14.24.2",
+    "dotenv": "^17.2.3"
+  }
+}
