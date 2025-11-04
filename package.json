@@ -25,6 +25,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.59",
     "discord-api-types": "^0.38.32",
     "discord.js": "^14.24.2",
     "dotenv": "^17.2.3"

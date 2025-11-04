@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aant_jelle_soepbot:latest
+    container_name: aant_jelle_soepbot
+    env_file:
+      - .env
+    restart: unless-stopped
+    # Discord bots make outbound connections only; no ports required
+    # ports:
+    #   - "3000:3000"  # not needed, shown as example if you add a web UI later

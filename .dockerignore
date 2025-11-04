@@ -1,0 +1,18 @@
+# Dependencies and builds
+node_modules
+npm-debug.log*
+dist
+
+# VCS / IDE / OS
+.git
+.gitignore
+.vscode
+.DS_Store
+
+# Docker / Compose
+Dockerfile*
+docker-compose*.yml
+
+# Env files
+.env
+*.env
