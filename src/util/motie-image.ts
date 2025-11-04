@@ -77,7 +77,7 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
   
   // Red dot (drawn after line so it's on top)
   ctx.beginPath()
-  ctx.fillStyle = red
+  ctx.fillStyle = opts.result === 'aangenomen' ? green : red
   ctx.arc(dotX, dotY, 8, 0, Math.PI * 2)
   ctx.fill()
 
