@@ -4,7 +4,7 @@ import Commands from "./constants/commands";
 import interactionReceived from "./callbacks/interaction-received";
 import pollEnded from "./callbacks/poll-ended";
 
-export const client = new Client({ intents: [GatewayIntentBits.GuildMessagePolls]});
+export const client = new Client({ intents: [GatewayIntentBits.GuildMessagePolls, GatewayIntentBits.MessageContent, GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 export const restClient = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
 
 client.on(Events.ClientReady, _ => {
@@ -14,6 +14,6 @@ client.on(Events.ClientReady, _ => {
 
 client.on(Events.InteractionCreate, interactionReceived);
 
-client.on(Events.MessageUpdate, pollEnded);
+client.on(Events.MessageCreate, pollEnded);
 
 client.login(config.DISCORD_TOKEN);

@@ -1,4 +1,4 @@
-import { APIApplicationCommand, ApplicationCommand, ApplicationCommandOptionType, RESTPutAPIApplicationCommandsJSONBody } from "discord.js";
+import { APIApplicationCommand, ApplicationCommand, ApplicationCommandOptionType, PermissionFlagsBits, RESTPutAPIApplicationCommandsJSONBody } from "discord.js";
 
 const Commands: RESTPutAPIApplicationCommandsJSONBody = [
     {
@@ -13,6 +13,19 @@ const Commands: RESTPutAPIApplicationCommandsJSONBody = [
                 max_length: 125
             }
         ]
+    },
+    {
+        name: "motie-van-wantrouwen",
+        description: "Forceer het beëindigen van een motie poll",
+        options: [
+            {
+                name: "message-id",
+                description: "Het bericht ID van de poll om te beëindigen",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ],
+        default_member_permissions: PermissionFlagsBits.ManageMessages.toString()
     }
 ]
 

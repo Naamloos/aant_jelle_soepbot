@@ -1,1 +1,1 @@
-export type FuckAssMessageUpdateCallbackTypeFromDiscordJS = (oldMessage: OmitPartialGroupDMChannel<Message<boolean> | PartialMessage<boolean>>, newMessage: OmitPartialGroupDMChannel<Message<boolean>>) => void | Promise<void>;
+export type FuckAssMessageUpdateCallbackTypeFromDiscordJS = (message: OmitPartialGroupDMChannel<Message<boolean>>) => void | Promise<void>;
