@@ -4,7 +4,7 @@
  * So I prompted it to generate a motie image generator in the style of the Dutch Tweede Kamer voting cards.
  */
 
-import { createCanvas } from '@napi-rs/canvas'
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas'
 
 export type VoteType = 'voor' | 'tegen' | 'onthouden'
 
@@ -27,6 +27,15 @@ export interface MotieImageResult {
   contentType: 'image/png'
 }
 
+// Try to register GNU FreeFont FreeSans (from the ttf-freefont package) so the image uses a deterministic sans.
+// If the package isn't installed at runtime we fall back to the system font stack.
+try {
+  const freeSansPath = require.resolve('ttf-freefont/FreeSans.ttf')
+  GlobalFonts.register(freeSansPath, { family: 'FreeSans' })
+} catch (e) {
+  // not installed — fall back to system fonts (no hard failure)
+}
+
 /**
  * Generate a Dutch-style "Motie" image summarizing poll results.
  * - Renders columns for VOOR, TEGEN, and optionally ONTHOUDEN
@@ -40,15 +49,15 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
   // Sort voters alphabetically across the entire list
   const votersSorted = [...opts.voters].sort((a, b) => a.name.localeCompare(b.name, 'nl-NL', { sensitivity: 'base' }))
 
-  // Compute rows and height (two column layout) with tighter spacing
-  const rowHeight = 28 // reduced from 34
+  // Compute rows and height (two column layout) with more spacing per voter line
+  const rowHeight = 36 // increased to dedicate more vertical space per voter line
   const rowsPerCol = Math.ceil(votersSorted.length / 2)
-  const headerBlock = 210 // reduced from 210
-  const panelTopPadding = 45 // reduced from 28
-  const panelBottomPadding = 20 // reduced from 28
+  const headerBlock = 210
+  const panelTopPadding = 45
+  const panelBottomPadding = 20
   const panelVPad = panelTopPadding + panelBottomPadding
   const panelContentHeight = rowsPerCol * rowHeight
-  const panelHeight = Math.max(panelContentHeight + panelVPad, 100)
+  const panelHeight = Math.max(panelContentHeight + panelVPad, 120)
   const height = headerBlock + panelHeight
 
   const canvas = createCanvas(width, height)
@@ -57,7 +66,7 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
   // Palette approximating screenshot
   const bg = '#000000' // black
   const panelBg = '#5b6064' // gray-600
-  const textOnDark = '#FFFFFF' // gray-200
+  const textOnDark = '#FFFFFF' // white on dark
   const green = '#68fd6a'
   const red = '#f56d5e'
   const white = '#FFFFFF'
@@ -68,14 +77,14 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
 
   // Left timeline stripe (drawn behind everything) - 2px wide, panel color
   const gutter = 56
-  const lineX = 42 // moved right by ~25px from original 10
-  const dotX = 43 // moved right by ~25px from original 18
-  const dotY = 32 // moved up by ~10px from original 36
-  
+  const lineX = 42
+  const dotX = 43
+  const dotY = 32
+
   ctx.fillStyle = panelBg
   ctx.fillRect(lineX, 0, 2, height)
-  
-  // Red dot (drawn after line so it's on top)
+
+  // Status dot (drawn after line so it's on top)
   ctx.beginPath()
   ctx.fillStyle = opts.result === 'aangenomen' ? green : red
   ctx.arc(dotX, dotY, 8, 0, Math.PI * 2)
@@ -84,25 +93,26 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
   // Header area
   const headerLeft = gutter + 12
   const headerRight = width - 24
-  let y = 40 // reduced starting position
+  let y = 40
   ctx.fillStyle = textOnDark
-  
+
   // Build full title with "de motie [submitter]: [text]" format
-  const fullTitle = opts.proposer 
+  const fullTitle = opts.proposer
     ? `de motie-${opts.proposer}: ${opts.title}`
     : `de motie: ${opts.title}`
-  
-  ctx.font = '700 24px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial'
+
+  // Prefer FreeSans if registered, else fall back to system stack
+  ctx.font = '700 24px "FreeSans", system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial'
   const titleMaxW = headerRight - headerLeft - 16
   wrapText(ctx, fullTitle, headerLeft, y, titleMaxW, 30)
   const titleHeight = measureWrappedHeight(ctx, fullTitle, titleMaxW, 30)
-  y += titleHeight + 8 // reduced gap from 22 to 8
+  y += titleHeight + 8
 
   // Result label under title
   const groups = groupVotes(votersSorted)
   const computed = computeResult(groups)
   const result = (opts.result ?? computed).toUpperCase()
-  ctx.font = '800 18px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial'
+  ctx.font = '800 18px "FreeSans", system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial'
   ctx.fillStyle = result === 'AANGENOMEN' ? green : red
   ctx.fillText(result, headerLeft, y)
 
@@ -116,7 +126,7 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
 
   // Columns layout
   const colGap = 40
-  const innerPadX = 45 // reduced from 24
+  const innerPadX = 45
   const innerPadY = panelTopPadding
   const contentX = panelX + innerPadX
   const contentY = panelY + innerPadY
@@ -126,7 +136,7 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
   const namesLeft = votersSorted.slice(0, rowsPerCol)
   const namesRight = votersSorted.slice(rowsPerCol)
 
-  const itemFont = '400 18px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial'
+  const itemFont = '400 18px "FreeSans", system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial'
   ctx.font = itemFont
   ctx.fillStyle = textOnDark
 
@@ -135,15 +145,15 @@ export async function generateMotieImage(opts: MotieImageOptions): Promise<Motie
     let yy = contentY
     for (const v of items) {
       const color = v.vote === 'voor' ? green : v.vote === 'tegen' ? red : white
-      // bullet
+      // bullet — slightly larger and vertically adjusted to match increased row height
       ctx.beginPath()
       ctx.fillStyle = color
-      ctx.arc(baseX, yy - 6, 5, 0, Math.PI * 2) // adjusted positioning
+      ctx.arc(baseX, yy - 10, 6, 0, Math.PI * 2)
       ctx.fill()
       // text
       ctx.fillStyle = textOnDark
-      const nameMax = colW - 28
-      yy = drawWrappedLine(ctx, v.name, baseX + 14, yy, nameMax, rowHeight)
+      const nameMax = colW - 36
+      yy = drawWrappedLine(ctx, v.name, baseX + 18, yy, nameMax, rowHeight)
     }
   }
 
@@ -256,7 +266,7 @@ function drawStamp(ctx: CanvasRenderingContext2D, width: number, height: number,
 
   // Text
   ctx.fillStyle = color
-  ctx.font = '800 44px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial'
+  ctx.font = '800 44px "FreeSans", system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial'
   const tw = ctx.measureText(text).width
   ctx.fillText(text, -tw / 2, 14)
 
